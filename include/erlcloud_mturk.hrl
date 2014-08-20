@@ -138,9 +138,9 @@
          }).
 
 -type(mturk_comparator() :: '<' | '=<' | '>' | '>=' | '==' | '/=' | exists).
--record mturk_locale, {
+-record(mturk_locale, {
           country_code::string()
-         }.
+         }).
 -record(mturk_qualification_requirement, {
           qualification_type_id::string(),
           comparator=exists::mturk_comparator(),

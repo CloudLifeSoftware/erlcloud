@@ -1,7 +1,7 @@
 -module(erlcloud_sts).
 
--include_lib("erlcloud/include/erlcloud.hrl").
--include_lib("erlcloud/include/erlcloud_aws.hrl").
+-include("erlcloud.hrl").
+-include("erlcloud_aws.hrl").
 
 -export([assume_role/4, assume_role/5]).
 

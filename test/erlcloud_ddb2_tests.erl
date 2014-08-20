@@ -25,38 +25,41 @@
 %%%===================================================================
 
 operation_test_() ->
-    {foreach,
-     fun start/0,
-     fun stop/1,
-     [fun error_handling_tests/1,
-      fun batch_get_item_input_tests/1,
-      fun batch_get_item_output_tests/1,
-      fun batch_write_item_input_tests/1,
-      fun batch_write_item_output_tests/1,
-      fun create_table_input_tests/1,
-      fun create_table_output_tests/1,
-      fun delete_item_input_tests/1,
-      fun delete_item_output_tests/1,
-      fun delete_table_input_tests/1,
-      fun delete_table_output_tests/1,
-      fun describe_table_input_tests/1,
-      fun describe_table_output_tests/1,
-      fun get_item_input_tests/1,
-      fun get_item_output_tests/1,
-      fun get_item_output_typed_tests/1,
-      fun list_tables_input_tests/1,
-      fun list_tables_output_tests/1,
-      fun put_item_input_tests/1,
-      fun put_item_output_tests/1,
-      fun q_input_tests/1,
-      fun q_output_tests/1,
-      fun scan_input_tests/1,
-      fun scan_output_tests/1,
-      fun update_item_input_tests/1,
-      fun update_item_output_tests/1,
-      fun update_table_input_tests/1,
-      fun update_table_output_tests/1
-     ]}.
+    {
+		foreach,
+		fun start/0,
+		fun stop/1,
+		[
+			fun error_handling_tests/1,
+			fun batch_get_item_input_tests/1,
+			fun batch_get_item_output_tests/1,
+			fun batch_write_item_input_tests/1,
+			fun batch_write_item_output_tests/1,
+			fun create_table_input_tests/1,
+			fun create_table_output_tests/1,
+			fun delete_item_input_tests/1,
+			fun delete_item_output_tests/1,
+			fun delete_table_input_tests/1,
+			fun delete_table_output_tests/1,
+			fun describe_table_input_tests/1,
+			fun describe_table_output_tests/1,
+			fun get_item_input_tests/1,
+			fun get_item_output_tests/1,
+			fun get_item_output_typed_tests/1,
+			fun list_tables_input_tests/1,
+			fun list_tables_output_tests/1,
+			fun put_item_input_tests/1,
+			fun put_item_output_tests/1,
+			fun q_input_tests/1,
+			fun q_output_tests/1,
+			fun scan_input_tests/1,
+			fun scan_output_tests/1,
+			fun update_item_input_tests/1,
+			fun update_item_output_tests/1,
+			fun update_table_input_tests/1,
+			fun update_table_output_tests/1
+		 ]
+	}.
 
 start() ->
     meck:new(erlcloud_httpc),
@@ -105,15 +108,19 @@ input_expect(Response, Expected) ->
 %% input_test converts an input_test specifier into an eunit test generator
 -type input_test_spec() :: {pos_integer(), {fun(), expected_body()} | {string(), fun(), expected_body()}}.
 -spec input_test(string(), input_test_spec()) -> tuple().
-input_test(Response, {Line, {Description, Fun, Expected}}) when
-      is_list(Description) ->
-    {Description, 
-     {Line,
-      fun() ->
-              meck:expect(erlcloud_httpc, request, input_expect(Response, Expected)),
-              erlcloud_ddb2:configure(string:copies("A", 20), string:copies("a", 40)),
-              Fun()
-      end}}.
+input_test(Response, {Line, {Description, Fun, Expected}}) when is_list(Description) ->
+    {
+		Description,
+     	{
+			Line,
+			fun() ->
+				meck:expect(erlcloud_httpc, request, input_expect(Response, Expected)),
+				erlcloud_ddb2:configure(string:copies("A", 20), string:copies("a", 40)),
+				Fun()
+			end
+		}
+	}.
+
 %% input_test(Response, {Line, {Fun, Params}}) ->
 %%     input_test(Response, {Line, {"", Fun, Params}}).
 
@@ -137,19 +144,24 @@ output_expect(Response) ->
 -type output_test_spec() :: {pos_integer(), {string(), term()} | {string(), string(), term()}}.
 -spec output_test(fun(), output_test_spec()) -> tuple().
 output_test(Fun, {Line, {Description, Response, Result}}) ->
-    {Description,
-     {Line,
-      fun() ->
-              meck:expect(erlcloud_httpc, request, output_expect(Response)),
-              erlcloud_ddb2:configure(string:copies("A", 20), string:copies("a", 40)),
-              Actual = Fun(),
-              case Result =:= Actual of
-                  true -> ok;
-                  false ->
-                      ?debugFmt("~nEXPECTED~n~p~nACTUAL~n~p~n", [Result, Actual])
-              end,
-              ?assertEqual(Result, Actual)
-      end}}.
+    {
+		Description,
+		{
+			Line,
+			fun() ->
+				meck:expect(erlcloud_httpc, request, output_expect(Response)),
+				erlcloud_ddb2:configure(string:copies("A", 20), string:copies("a", 40)),
+				Actual = Fun(),
+				case Result =:= Actual of
+					true -> ok;
+					false ->
+						?debugFmt("~nEXPECTED~n~p~nACTUAL~n~p~n", [Result, Actual])
+				end,
+				?assertEqual(Result, Actual)
+			end
+		}
+	}.
+
 %% output_test(Fun, {Line, {Response, Result}}) ->
 %%     output_test(Fun, {Line, {"", Response, Result}}).
       
@@ -157,7 +169,6 @@ output_test(Fun, {Line, {Description, Response, Result}}) ->
 -spec output_tests(fun(), [output_test_spec()]) -> [term()].       
 output_tests(Fun, Tests) ->
     [output_test(Fun, Test) || Test <- Tests].
-
 
 %%%===================================================================
 %%% Error test helpers
@@ -172,14 +183,18 @@ httpc_response(Code, Body) ->
 error_test(Fun, {Line, {Description, Responses, Result}}) ->
     %% Add a bogus response to the end of the request to make sure we don't call too many times
     Responses1 = Responses ++ [httpc_response(200, "TOO MANY REQUESTS")],
-    {Description,
-     {Line,
-      fun() ->
-              meck:sequence(erlcloud_httpc, request, 6, Responses1),
-              erlcloud_ddb2:configure(string:copies("A", 20), string:copies("a", 40)),
-              Actual = Fun(),
-              ?assertEqual(Result, Actual)
-      end}}.
+    {
+		Description,
+     	{
+			Line,
+			fun() ->
+				meck:sequence(erlcloud_httpc, request, 6, Responses1),
+				erlcloud_ddb2:configure(string:copies("A", 20), string:copies("a", 40)),
+				Actual = Fun(),
+				?assertEqual(Result, Actual)
+			end
+		}
+	}.
       
 -spec error_tests(fun(), [error_test_spec()]) -> [term()].
 error_tests(Fun, Tests) ->
@@ -190,13 +205,13 @@ error_tests(Fun, Tests) ->
 %%%===================================================================
 
 input_exception_test_() ->
-    [?_assertError({erlcloud_ddb, {invalid_attr_value, {n, "string"}}},
-                   erlcloud_ddb2:get_item(<<"Table">>, {<<"K">>, {n, "string"}})),
-     %% This test causes an expected dialyzer error
-     ?_assertError({erlcloud_ddb, {invalid_item, <<"Attr">>}},
-                   erlcloud_ddb2:put_item(<<"Table">>, <<"Attr">>)),
-     ?_assertError({erlcloud_ddb, {invalid_opt, {myopt, myval}}},
-                   erlcloud_ddb2:list_tables([{myopt, myval}]))
+    [
+		?_assertError({erlcloud_ddb, {invalid_attr_value, {n, "string"}}},
+			erlcloud_ddb2:get_item(<<"Table">>, {<<"K">>, {n, "string"}})),
+
+		 %% This test causes an expected dialyzer error
+		 ?_assertError({erlcloud_ddb, {invalid_item, <<"Attr">>}}, erlcloud_ddb2:put_item(<<"Table">>, <<"Attr">>)),
+		 ?_assertError({erlcloud_ddb, {invalid_opt, {myopt, myval}}}, erlcloud_ddb2:list_tables([{myopt, myval}]))
     ].
 
 %% Error handling tests based on:
