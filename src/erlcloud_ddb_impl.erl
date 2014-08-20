@@ -60,15 +60,23 @@
 -include("erlcloud_aws.hrl").
 -include("erlcloud_ddb2.hrl").
 
+-ifdef(EUNIT).
+	-include_lib("eunit/include/eunit.hrl").
+-endif.
+
 %% Helpers
--export([backoff/1, 
-         retry/1, retry/2,
-         request_id_from_error/1,
-         error_reason2/1
-        ]).
+-export([
+	backoff/1,
+	retry/1,
+	retry/2,
+	request_id_from_error/1,
+	error_reason2/1
+]).
 
 %% Internal impl api
--export([request/3]).
+-export([
+	request/3
+]).
 
 -export_type([json_return/0, attempt/0, retry_fun/0]).
 
@@ -266,10 +274,24 @@ headers(Config, Operation, Body) ->
     erlcloud_aws:sign_v4(Config, Headers, Body, Region, "dynamodb").
 
 url(#aws_config{ddb_scheme = Scheme, ddb_host = Host} = Config) ->
-    lists:flatten([Scheme, Host, port_spec(Config)]).
+	case string:span(Host, "localhost") > 1 of
+		true ->
+			"http://localhost:8000";
+		false ->
+			lists:flatten([Scheme, Host, port_spec(Config)])
+	end.
 
 port_spec(#aws_config{ddb_port=80}) ->
     "";
 port_spec(#aws_config{ddb_port=Port}) ->
     [":", erlang:integer_to_list(Port)].
 
+-ifdef(EUNIT).
+
+url_test_() ->
+	[
+		?_assertEqual("http://localhost:8000", url(#aws_config{
+			ddb_scheme = "https://", ddb_host = "localhost:8000", ddb_port = 80}))
+	].
+
+-endif.
