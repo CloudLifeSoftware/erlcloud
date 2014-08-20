@@ -1,7 +1,4 @@
 *.beam
-*.tmproj
-_build
-ebin/*.beam
 ebin/*.app
 .eunit/
 rebar
@@ -9,3 +6,6 @@ rebar
 deps/
 doc/
 .edts
+erlcloud.iml
+.idea/
+erlcinfo
