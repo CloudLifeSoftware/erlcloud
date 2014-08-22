@@ -1,6 +1,9 @@
 # erlcloud: Cloud Computing APIs For Erlang #
 
-This is version 0.8.0.  The API is subject to change.
+Fork of [https://github.com/gleber/erlcloud](https://github.com/gleber/erlcloud). This is version 0.8.0.  The API is subject to change.
+
+Added automatic support for DynamoDBLocal.  Now changes URL to point to http://localhost:8000 when Host contains
+'localhost'.
 
 Service APIs implemented:
 
